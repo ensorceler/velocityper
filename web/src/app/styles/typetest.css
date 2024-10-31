@@ -1,0 +1,3 @@
+.toggle-group-item {
+  @apply dark:data-[state=on]:bg-emerald-600;
+}
