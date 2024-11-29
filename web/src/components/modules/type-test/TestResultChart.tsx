@@ -9,9 +9,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Card } from "@/components/ui/card";
+import { calculateAccuracy, calculateWPM } from "@/utils/typingTestUtil";
+import { useEffect } from "react";
 
 export const description = "A line chart with dots";
 
+/*
 const chartData = [
   { seconds: 0, wpm: 86, error: 80 },
   { seconds: 1, wpm: 90, error: 200 },
@@ -30,6 +33,9 @@ const chartData = [
   { seconds: 14, wpm: 90, error: 140 },
   { seconds: 15, wpm: 88, error: 140 },
 ];
+*/
+
+//const chartData: ChartGraphData[] = [];
 
 const chartConfig = {
   //height: "500px",
@@ -43,7 +49,16 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function TestResultChart() {
+interface TestResultChartProps {
+  chartData: any[];
+}
+
+export default function TestResultChart({ chartData }: TestResultChartProps) {
+  //const [chartData,setChartData]=useState()
+
+  useEffect(() => {
+    console.log("chartData=>", chartData);
+  }, [chartData]);
   return (
     <div className="w-full h-80">
       <ChartContainer
@@ -87,6 +102,7 @@ export default function TestResultChart() {
             cursor={false}
             content={<ChartTooltipContent hideLabel />}
           />
+
           <Line
             dataKey="wpm"
             type="natural"

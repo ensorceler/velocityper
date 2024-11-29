@@ -5,6 +5,7 @@ import {
   Crown as LeaderboardIcon,
   Keyboard as KeyboardIcon,
   Settings as SettingsIcon,
+  UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -13,10 +14,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import Notifications from "./Notifications";
+import LoginCard from "../modules/auth/LoginCard";
 
 export default function Nav() {
   return (
-    <div className="max-w-5xl ml-auto mr-auto mt-10 flex justify-between items-start">
+    <nav className="max-w-5xl ml-auto mr-auto my-10 flex justify-between items-start">
       {/** logo section */}
       <div className="flex flex-row items-start gap-3">
         {/** logo */}
@@ -80,9 +83,11 @@ export default function Nav() {
 
       {/** user icon section */}
       <div className="py-2 flex flex-row gap-6 items-center ">
-        <NotificationIcon className="nav-icon" />
-        <UserIcon className="nav-icon" />
+        <Notifications />
+        <Link href="/login" passHref>
+          <UserRound className="nav-icon" />
+        </Link>
       </div>
-    </div>
+    </nav>
   );
 }

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply font-geistSans;
+  @apply font-geistSans text-neutral-200;
 }
 
 @layer utilities {
@@ -32,5 +32,5 @@ body {
 }
 
 .nav-icon {
-  @apply dark:text-stone-400  dark:hover:text-stone-50 cursor-pointer active:scale-95;
+  @apply dark:text-stone-400   dark:hover:text-stone-50 cursor-pointer active:scale-95;
 }

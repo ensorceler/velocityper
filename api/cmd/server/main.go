@@ -7,7 +7,8 @@ import (
 	"velocityper/api/internal/db"
 	"velocityper/api/internal/handler"
 	"velocityper/api/internal/middleware"
-	"velocityper/api/internal/ws"
+
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -21,8 +22,8 @@ func main() {
 		log.Panic("DB CONN ERROR: ", err)
 	}
 
-	hub := ws.NewHub()
-	go hub.RunHub()
+	//hub := ws.NewHub()
+	//go hub.RunHub()
 
 	// health check
 	mux.Handle("GET /health", handler.HealthHandler{})
@@ -36,9 +37,14 @@ func main() {
 	mux.HandleFunc("POST /register", handler.Register)
 	mux.HandleFunc("POST /logout", handler.Logout)
 
+	// get quotes
+	mux.HandleFunc("GET /quotes", handler.GetQuotes)
+	// get words
+	mux.HandleFunc("GET /words", handler.GetWords)
+
 	// socket connection
-	wsHandler := handler.WebSocketHandler{Hub: hub}
-	mux.Handle("GET /chat", wsHandler)
+	//wsHandler := handler.WebSocketHandler{Hub: hub}
+	//mux.Handle("GET /chat", wsHandler)
 	//mux.HandleFunc("GET /socket")
 
 	// http listen and serve
@@ -46,7 +52,11 @@ func main() {
 	addr := ":" + port
 	//fmt.Println(addr)
 	log.Printf("VELOCITYPER API SERVER, RUNNING AT %v", addr)
-	err = http.ListenAndServe(addr, mux)
+
+	corsHandler := cors.Default().Handler(mux)
+	err = http.ListenAndServe(addr, corsHandler)
+
+	//err = http.ListenAndServe(addr, mux)
 
 	if err != nil {
 		log.Printf("Error has occurred when starting the server\n %v \n", err)

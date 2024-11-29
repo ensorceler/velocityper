@@ -1,7 +1,7 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { LapTimerIcon } from "@radix-ui/react-icons";
 import {
   Hash as HashIcon,
@@ -26,9 +26,13 @@ export default function TypingTestConfiguration({
   const [testType, setTestType] = useState<TestConfigTestType>(
     TestConfigTestType.timer
   );
+  // track mounted status
+  const mountRef = useRef<null | boolean>(null);
 
+  const [loading, setLoading] = useState(true);
   // 0: default, 1: numbers, 2: punctuation, 3: both
-  const [includeCharacters, setIncludeCharacters] = useState<number>(0);
+  const [includeCharacters, setIncludeCharacters] =
+    useState<TestConfig["includeCharacters"]>("none");
 
   const [timerState, setTimerState] = useState<string>(
     config.timerDuration.toString()
@@ -43,7 +47,7 @@ export default function TypingTestConfiguration({
   };
 
   const onChangeTimerState = (val: string) => {
-    if (val !== "") setTimerState((timerState) => val as TimeState);
+    if (val !== "") setTimerState(val as TimeState);
   };
 
   const onChangeWordsState = (val: string) => {
@@ -55,7 +59,6 @@ export default function TypingTestConfiguration({
   };
 
   const onChangeIncludeCharacters = (value: string[]) => {
-    //console.log("value =>", value);
     if (value.length === 2) {
       setConfig((p) => ({ ...p, includeCharacters: "both" }));
     } else if (value.length === 1) {
@@ -70,17 +73,59 @@ export default function TypingTestConfiguration({
     }
   };
 
+  const updateConfigParamsAtMount = () => {
+    if (mountRef.current === null) {
+      mountRef.current = true;
+      const configFromStorage = localStorage.getItem("test-config");
+      if (configFromStorage !== null) {
+        try {
+          const parsedConfig = JSON.parse(configFromStorage);
+          setTestType(parsedConfig?.testType);
+          setTimerState(parsedConfig?.timerDuration?.toString());
+          setWordsState(parsedConfig?.wordCount?.toString());
+          setQuotesState(parsedConfig?.quoteLength?.toString());
+          setIncludeCharacters(parsedConfig?.includeCharacters);
+        } catch {
+          console.error("ERROR at updateConfigParamsAtMount");
+        }
+      }
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    setConfig((p) => ({
-      ...p,
-      testType: testType,
-      timerDuration: parseInt(timerState),
-      wordCount: parseInt(wordsState),
-      quoteLength: quotesState,
-    }));
+    const prevConfig = config;
+    // Only update if the new values are different from previous config
+    if (
+      testType !== prevConfig.testType ||
+      parseInt(timerState) !== prevConfig.timerDuration ||
+      parseInt(wordsState) !== prevConfig.wordCount ||
+      quotesState !== prevConfig.quoteLength
+    ) {
+      console.log("update at config not needed");
+      setConfig((p) => ({
+        ...p,
+        testType: testType,
+        timerDuration: parseInt(timerState),
+        wordCount: parseInt(wordsState),
+        quoteLength: quotesState as TestConfig["quoteLength"],
+        includeCharacters: includeCharacters,
+      }));
+    }
+    // Return previous config if no changes
   }, [testType, timerState, wordsState, quotesState]);
 
-  return (
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
+    updateConfigParamsAtMount();
+  }, []);
+
+  return loading ? (
+    <div className="bg-neutral-900 w-96 px-4 h-7 rounded-md flex flex-row gap-3 animate-pulse"></div>
+  ) : (
     <div className="bg-neutral-900 px-4 py-2 w-max rounded-md flex flex-row gap-3">
       <ToggleGroup
         className="flex justify-start items-center"
@@ -121,29 +166,31 @@ export default function TypingTestConfiguration({
         className="bg-neutral-100 dark:bg-neutral-100 w-[2px]"
       />
 
-      <ToggleGroup
-        className="flex justify-start items-center"
-        type="multiple"
-        variant="outline"
-        disabled={config.testOngoing}
-        onValueChange={onChangeIncludeCharacters}
-      >
-        <ToggleGroupItem
-          value="numbers"
-          aria-label="Toggle numbers"
-          className="toggle-group-item"
+      {(testType === "timer" || testType === "words") && (
+        <ToggleGroup
+          className="flex justify-start items-center"
+          type="multiple"
+          variant="outline"
+          disabled={config.testOngoing}
+          onValueChange={onChangeIncludeCharacters}
         >
-          <HashIcon className="h-4 w-4" /> numbers
-        </ToggleGroupItem>
+          <ToggleGroupItem
+            value="numbers"
+            aria-label="Toggle numbers"
+            className="toggle-group-item"
+          >
+            <HashIcon className="h-4 w-4" /> numbers
+          </ToggleGroupItem>
 
-        <ToggleGroupItem
-          value="punctuation"
-          aria-label="Toggle punctuation"
-          className="toggle-group-item"
-        >
-          <AtSignIcon className="h-4 w-4" /> punctuation
-        </ToggleGroupItem>
-      </ToggleGroup>
+          <ToggleGroupItem
+            value="punctuation"
+            aria-label="Toggle punctuation"
+            className="toggle-group-item"
+          >
+            <AtSignIcon className="h-4 w-4" /> punctuation
+          </ToggleGroupItem>
+        </ToggleGroup>
+      )}
 
       {testType === "timer" && (
         <div className="flex gap-3 items-center">
