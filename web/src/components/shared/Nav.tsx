@@ -33,7 +33,7 @@ export default function Nav() {
         </div>
         {/** logo */}
         <div className="flex flex-row items-center gap-6 py-2">
-          <TooltipProvider>
+          <TooltipProvider delayDuration={250}>
             <Tooltip>
               <TooltipTrigger>
                 <Link href="/" passHref>
@@ -45,7 +45,7 @@ export default function Nav() {
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
+            <Tooltip delayDuration={250}>
               <TooltipTrigger>
                 <Link href="/race-with-friends" passHref>
                   <RaceWithFriendsIcon className="nav-icon" />
@@ -56,7 +56,7 @@ export default function Nav() {
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
+            <Tooltip delayDuration={250}>
               <TooltipTrigger>
                 <Link href="/leaderboard" passHref>
                   <LeaderboardIcon className="nav-icon" />
@@ -67,7 +67,7 @@ export default function Nav() {
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
+            <Tooltip delayDuration={250}>
               <TooltipTrigger>
                 <Link href="/settings" passHref>
                   <SettingsIcon className="nav-icon" />

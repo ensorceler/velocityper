@@ -16,8 +16,10 @@ interface TestConfig {
   wordCount: number;
   quoteLength: "short" | "medium" | "long";
   testOngoing: boolean;
-  includeCharacters: "none" | "numbers" | "punctuation" | "both";
+  includeCharacters: Array<"numbers" | "punctuation">;
 }
+
+type TestStatus = "upcoming" | "ongoing" | "finished";
 
 interface TestResult {
   chartResult: any[];

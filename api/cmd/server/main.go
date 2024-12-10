@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"velocityper/api/internal/config"
 	"velocityper/api/internal/db"
 	"velocityper/api/internal/handler"
+	redis_cli "velocityper/api/internal/lib/redis"
 	"velocityper/api/internal/middleware"
 
 	"github.com/rs/cors"
@@ -15,12 +17,28 @@ func main() {
 
 	var err error
 	config.LoadConfigENV()
-
+	// create the serveMux
 	mux := http.NewServeMux()
+
+	// Check DB Connection
 	err = db.GetDBConn().Ping()
 	if err != nil {
 		log.Panic("DB CONN ERROR: ", err)
 	}
+
+	// Check Redis Connection
+	redis_cli.CreateNewClient()
+	redisPing, err := redis_cli.GetRedisClient().CheckPing().Result()
+	if err != nil {
+		log.Panic("REDIS CONN ERROR: ", err)
+	}
+	fmt.Printf("redis ping: %+v\n", redisPing)
+
+	//file server at /public directory
+	fs := http.FileServer(http.Dir("./public"))
+
+	// Handle requests to serve static files
+	mux.Handle("/public/", http.StripPrefix("/public/", fs))
 
 	//hub := ws.NewHub()
 	//go hub.RunHub()
@@ -29,7 +47,7 @@ func main() {
 	mux.Handle("GET /health", handler.HealthHandler{})
 
 	// user handler
-	mux.Handle("GET /users", middleware.AuthMiddleware(handler.GetUsers))
+	mux.HandleFunc("GET /users", middleware.AuthMiddleware2(handler.GetUsers))
 	mux.HandleFunc("GET /users/{id}", handler.GetUserById)
 
 	// auth handler
@@ -47,9 +65,13 @@ func main() {
 	//mux.Handle("GET /chat", wsHandler)
 	//mux.HandleFunc("GET /socket")
 
+	mux.Handle("GET /chat", handler.WebSocketHandler{})
+
+	mux.HandleFunc("GET /test", handler.GetTest)
+
 	// http listen and serve
-	port := config.GetEnv("PORT")
-	addr := ":" + port
+	addr := fmt.Sprintf(":%s", config.GetEnv("PORT"))
+
 	//fmt.Println(addr)
 	log.Printf("VELOCITYPER API SERVER, RUNNING AT %v", addr)
 

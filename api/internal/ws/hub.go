@@ -1,5 +1,6 @@
 package ws
 
+/*
 type Hub struct {
 	Register   chan *Client
 	UnRegister chan *Client
@@ -43,3 +44,4 @@ func (h *Hub) RunHub() {
 		}
 	}
 }
+*/

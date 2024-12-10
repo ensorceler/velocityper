@@ -8,8 +8,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Card } from "@/components/ui/card";
-import { calculateAccuracy, calculateWPM } from "@/utils/typingTestUtil";
 import { useEffect } from "react";
 
 export const description = "A line chart with dots";
@@ -39,9 +37,13 @@ const chartData = [
 
 const chartConfig = {
   //height: "500px",
-  desktop: {
-    label: "Desktop",
+  wpm: {
+    label: "WPM",
     color: "#10b981",
+  },
+  rawWPM: {
+    label: "Raw WPM",
+    color: "#94a3b8",
   },
   mobile: {
     label: "Mobile",
@@ -57,7 +59,7 @@ export default function TestResultChart({ chartData }: TestResultChartProps) {
   //const [chartData,setChartData]=useState()
 
   useEffect(() => {
-    console.log("chartData=>", chartData);
+    console.debug("Test Result Chart =>", chartData);
   }, [chartData]);
   return (
     <div className="w-full h-80">
@@ -102,14 +104,21 @@ export default function TestResultChart({ chartData }: TestResultChartProps) {
             cursor={false}
             content={<ChartTooltipContent hideLabel />}
           />
+          <Line
+            dataKey="rawWPM"
+            type="natural"
+            stroke="var(--color-rawWPM)"
+            strokeWidth={2}
+            dot={false}
+          />
 
           <Line
             dataKey="wpm"
             type="natural"
-            stroke="var(--color-desktop)"
+            stroke="var(--color-wpm)"
             strokeWidth={2}
             dot={{
-              fill: "var(--color-desktop)",
+              fill: "var(--color-wpm)",
             }}
             activeDot={{
               r: 6,

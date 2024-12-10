@@ -2,7 +2,13 @@
 
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "@/lib/cn";
 import { LoaderCircleIcon, RotateCcw, TimerReset } from "lucide-react";
 import formatSeconds from "@/utils/formatSeconds";
@@ -10,26 +16,29 @@ import useTypeTestTimer from "@/hooks/useTypeTestTimer";
 import { useTypeTestWords } from "@/hooks/useTypeTestWords";
 import useTypeTestQuotes from "@/hooks/useTypeTestQuotes";
 import useLoadTextState from "@/hooks/useLoadTextState";
+import _ from "lodash";
 
 interface TypingTestBoxProps {
   config: TestConfig;
   setConfig: Dispatch<SetStateAction<TestConfig>>;
   setResult: Dispatch<SetStateAction<TestResult>>;
+  testStatus: TestStatus;
+  setTestStatus: Dispatch<SetStateAction<TestStatus>>;
 }
 
 export default function TypingTestBox({
   config,
+  testStatus,
+  setTestStatus,
   setResult,
 }: TypingTestBoxProps) {
+  const testConfigRef = useRef(config);
+
   const [inputShadowState, setInputShadowState] = useState("");
   const [inputStateCounter, setInputStateCounter] = useState(0);
 
   const [disableInput, setDisableInput] = useState(false);
   const [testCompleted, setTestCompleted] = useState(false);
-
-  const [testStatus, setTestStatus] = useState<
-    "upcoming" | "ongoing" | "finished"
-  >("upcoming");
 
   const { textState, setTextState, isTextStateLoading } =
     useLoadTextState(config);
@@ -107,6 +116,11 @@ export default function TypingTestBox({
 
   const calculateTestStat = (textWord: string, typedWord: string) => {
     let matchCount = 0;
+    /*
+      abcdef 
+      abc 
+      abc
+    */
     const minLength = Math.min(textWord?.length, typedWord?.length);
 
     // Compare characters at the same positions
@@ -125,17 +139,15 @@ export default function TypingTestBox({
 
       // case words
       case "words":
-        // words
+        // calcualate words
         calculateWordTestStats(typedWord.length, matchCount, textWord.length);
         break;
 
       case "quotes":
-        // quotes
+        // calculate quotes
         calculateQuoteTestStats(typedWord.length, matchCount, textWord.length);
         break;
     }
-
-    //setWord
   };
 
   const onCaptureInputState = (e: KeyboardEvent | any) => {
@@ -146,13 +158,17 @@ export default function TypingTestBox({
       switch (config.testType) {
         case "timer":
           startTimerTest();
+          setTestStatus("ongoing");
           break;
         case "words":
           startWordTest();
+          setTestStatus("ongoing");
           break;
         case "quotes":
           startQuoteTest();
+          setTestStatus("ongoing");
           break;
+        default:
       }
       compareTextToInput();
       setInputShadowState("");
@@ -181,18 +197,21 @@ export default function TypingTestBox({
         if (isTimerTestCompleted && timerTestResult) {
           setResult(timerTestResult);
           setTestCompleted(true);
+          setTestStatus("finished");
         }
         break;
       case "words":
         if (isWordTestCompleted && wordTestResult) {
           setResult(wordTestResult);
           setTestCompleted(true);
+          setTestStatus("finished");
         }
         break;
       case "quotes":
         if (isQuoteTestCompleted) {
           setResult(quoteTestResult);
           setTestCompleted(true);
+          setTestStatus("finished");
         }
         break;
     }
@@ -204,6 +223,19 @@ export default function TypingTestBox({
     isQuoteTestCompleted,
     quoteTestResult,
   ]);
+
+  useEffect(() => {
+    if (
+      (testStatus === "ongoing" || testStatus == "finished") &&
+      !_.isEqual(config, testConfigRef.current)
+    ) {
+      console.log("config changed while typing, must reset everything");
+      // has to reset first, separate logic needs to be put here
+      window.location.reload();
+    } else {
+      testConfigRef.current = config;
+    }
+  }, [testStatus, config]);
 
   return (
     <div className="flex flex-col gap-4">

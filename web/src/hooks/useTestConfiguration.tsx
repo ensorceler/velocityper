@@ -11,7 +11,7 @@ export default function useTestConfiguration(): [
     wordCount: 50,
     quoteLength: "medium",
     testOngoing: false,
-    includeCharacters: "none",
+    includeCharacters: [],
   });
 
   const storeConfigToLocalStorage = () => {

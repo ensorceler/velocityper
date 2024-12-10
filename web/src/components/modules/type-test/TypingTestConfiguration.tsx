@@ -31,8 +31,10 @@ export default function TypingTestConfiguration({
 
   const [loading, setLoading] = useState(true);
   // 0: default, 1: numbers, 2: punctuation, 3: both
-  const [includeCharacters, setIncludeCharacters] =
-    useState<TestConfig["includeCharacters"]>("none");
+
+  const [includeCharState, setIncludeCharState] = useState<
+    Array<"numbers" | "punctuation">
+  >([]);
 
   const [timerState, setTimerState] = useState<string>(
     config.timerDuration.toString()
@@ -58,19 +60,13 @@ export default function TypingTestConfiguration({
     if (val !== "") setQuotesState(val as QuoteState);
   };
 
-  const onChangeIncludeCharacters = (value: string[]) => {
-    if (value.length === 2) {
-      setConfig((p) => ({ ...p, includeCharacters: "both" }));
-    } else if (value.length === 1) {
-      setConfig((p) => ({
-        ...p,
-        includeCharacters: value.includes("numbers")
-          ? "numbers"
-          : "punctuation",
-      }));
-    } else if (!value.length) {
-      setConfig((p) => ({ ...p, includeCharacters: "none" }));
-    }
+  const onChangeIncludeCharacters = (
+    value: Array<"numbers" | "punctuation">
+  ) => {
+    // set include character state
+    setIncludeCharState(value);
+    // set config
+    setConfig((c) => ({ ...c, includeCharacters: value }));
   };
 
   const updateConfigParamsAtMount = () => {
@@ -84,7 +80,7 @@ export default function TypingTestConfiguration({
           setTimerState(parsedConfig?.timerDuration?.toString());
           setWordsState(parsedConfig?.wordCount?.toString());
           setQuotesState(parsedConfig?.quoteLength?.toString());
-          setIncludeCharacters(parsedConfig?.includeCharacters);
+          setIncludeCharState(parsedConfig?.includeCharacters || []);
         } catch {
           console.error("ERROR at updateConfigParamsAtMount");
         }
@@ -103,14 +99,13 @@ export default function TypingTestConfiguration({
       parseInt(wordsState) !== prevConfig.wordCount ||
       quotesState !== prevConfig.quoteLength
     ) {
-      console.log("update at config not needed");
       setConfig((p) => ({
         ...p,
         testType: testType,
         timerDuration: parseInt(timerState),
         wordCount: parseInt(wordsState),
         quoteLength: quotesState as TestConfig["quoteLength"],
-        includeCharacters: includeCharacters,
+        includeCharacters: includeCharState,
       }));
     }
     // Return previous config if no changes
@@ -172,6 +167,7 @@ export default function TypingTestConfiguration({
           type="multiple"
           variant="outline"
           disabled={config.testOngoing}
+          value={includeCharState}
           onValueChange={onChangeIncludeCharacters}
         >
           <ToggleGroupItem

@@ -2,7 +2,10 @@ package ws
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	redis_cli "velocityper/api/internal/lib/redis"
+	"velocityper/api/internal/utils"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,32 +16,37 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	conn   *websocket.Conn
-	hub    *Hub
-	send   chan any
+	conn *websocket.Conn
+	//redisClient *redis.Client
+	redis  *redis_cli.REDISClient
 	roomId string
 }
 
 func (c *Client) readMessage() {
 
 	for {
-		var x interface{}
-		err := c.conn.ReadJSON(&x)
+		_, message, err := c.conn.ReadMessage()
+
 		if err != nil {
-			fmt.Println("Error reading json", err)
+			fmt.Println("read err =>", err)
 			return
 		}
+
+		fmt.Println("message read =>", message)
+		c.redis.PublishMessage(c.roomId, string(message))
 		//c.send <- x
-		c.hub.Broadcast <- broadCastMessage{x, c.roomId}
 	}
 
 }
 
 func (c *Client) writeMessage() {
 
+	pubsub := c.redis.PubSub(c.roomId)
+	defer pubsub.Close()
+
 	for {
 		select {
-		case msg := <-c.send:
+		case msg := <-pubsub.Channel():
 			fmt.Println("msg =>", msg)
 			err := c.conn.WriteJSON(msg)
 			if err != nil {
@@ -49,24 +57,34 @@ func (c *Client) writeMessage() {
 	}
 }
 
-func ClientRun(w http.ResponseWriter, r *http.Request, hub *Hub) {
+func ClientRun(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
-	roomId := q.Get("roomId")
+	roomId := q.Get("room")
 	fmt.Println("roomId: ", roomId)
 
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println("Upgrader Connection Error: ", err)
+	if roomId == "" {
+		//w.Write([]byte("bad request"))
+		utils.HttpResponse(w, 403, "Bad Request", nil)
 		return
 	}
 
-	//hub:=Hub{}
-	// fmt.Println("upgrader connection error: ",err)
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	conn, err := upgrader.Upgrade(w, r, nil)
 
-	c := Client{conn, hub, make(chan any), roomId}
-	c.hub.Register <- &c
+	if err != nil {
+		log.Println("connection error: ", err)
+		defer conn.Close()
+		return
+	}
 
+	// create a client for each connection
+	c := Client{
+		conn:   conn,
+		roomId: roomId,
+		redis:  redis_cli.GetRedisClient(),
+	}
+	//c.redis.GetKeyVal()
 	go c.readMessage()
 	go c.writeMessage()
 

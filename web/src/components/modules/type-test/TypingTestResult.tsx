@@ -10,13 +10,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import TestResultChart from "./TestResultChart";
 import { useEffect, useState } from "react";
-import { calculateAccuracy, calculateWPM } from "@/utils/typingTestUtil";
 
 interface TypingTestResultProps {
   result: TestResult;
+  testStatus: TestStatus;
 }
 
-export default function TypingTestResult({ result }: TypingTestResultProps) {
+export default function TypingTestResult({
+  result,
+  testStatus,
+}: TypingTestResultProps) {
   useEffect(() => {
     console.log("reuslt changed =>", result);
   }, [result]);
@@ -54,7 +57,7 @@ export default function TypingTestResult({ result }: TypingTestResultProps) {
                 <p>
                   <span className="font-medium">Correct Characters</span>
                   {" - "}
-                  <span className=""></span>
+                  <span className="">{result.correctChars}</span>
                 </p>
               </div>
               <Separator />
@@ -70,7 +73,7 @@ export default function TypingTestResult({ result }: TypingTestResultProps) {
                     Incorrect Characters(Error)
                   </span>
                   {" -"}
-                  <span className="">-</span>
+                  <span className="">{result?.incorrectChars}</span>
                 </p>
               </div>
             </div>

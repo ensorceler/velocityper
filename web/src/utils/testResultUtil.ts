@@ -17,6 +17,8 @@ export const calculateTestResultFinalData = (
   let cummulativeCorrectCharTyped = 0;
   let totalSeconds = 0;
 
+  console.log("GRAPH before ", graphData);
+
   graphData.forEach((item) => {
     if (item.second > 0) {
       cummulativeCharTyped = item.numOfCharsTyped;
@@ -24,13 +26,15 @@ export const calculateTestResultFinalData = (
       totalSeconds = item.second;
 
       const wpm = calculateWPM(cummulativeCorrectCharTyped, totalSeconds);
+      const grossWPM = calculateWPM(cummulativeCharTyped, totalSeconds);
       const acc = calculateAccuracy(
         cummulativeCharTyped,
         cummulativeCorrectCharTyped
       );
 
       arr.push({
-        wpm: wpm,
+        wpm: Math.round(wpm),
+        rawWPM: Math.round(grossWPM),
         seconds: totalSeconds,
         accuracy: acc,
       });
@@ -42,7 +46,7 @@ export const calculateTestResultFinalData = (
     wpm: netWPM,
     rawWPM: grossWPM,
     accuracy: accuracy,
-    correctChars: 0,
-    incorrectChars: 0,
+    correctChars: numOfCharsCorrectlyTyped,
+    incorrectChars: numOfCharsTyped - numOfCharsCorrectlyTyped,
   };
 };

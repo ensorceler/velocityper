@@ -108,14 +108,14 @@ const useTypeTestTimer = (testConfig: TestConfig) => {
         // when time reaches 0
         if (time === 0) {
           countDownRef.current = false;
-          accumulateTimerTestStatsEachSecond(time);
+          //accumulateTimerTestStatsEachSecond(time);
           setStartCountDown(false);
           setIsTimerTestCompleted(true);
           //finalCalculation();
         } else {
-          accumulateTimerTestStatsEachSecond(time);
           setCountdownTime((countdownTime) => countdownTime - 1);
           time = time - 1;
+          accumulateTimerTestStatsEachSecond(time);
         }
       }, 1000);
     }

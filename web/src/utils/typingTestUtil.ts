@@ -66,7 +66,7 @@ const getRandomNumber = (min: number, max: number) => {
 
 export const prepareWordState = (
   array: string[],
-  includeCharacters: "none" | "numbers" | "punctuation" | "both"
+  includeCharacters: Array<"numbers" | "punctuation">
 ) => {
   //console.log("shuffle words", shuffleWords(array).slice(0, 100));
   return shuffleWords(array)
@@ -115,13 +115,13 @@ export const prepareQuoteState = (quotesData: any[], quoteLength: string) => {
 
 const modifyWord = (
   word: string,
-  type: "none" | "numbers" | "punctuation" | "both",
+  typeArr: Array<"numbers" | "punctuation">,
   maxAdditions: number = 1
 ) => {
   let modifiedWord = word;
   const specialChars = ["!", "@", "#", "$", "%", "^", "&", "*"];
 
-  if (type === "punctuation" || type === "both") {
+  if (typeArr.includes("punctuation")) {
     const specialCount = Math.floor(Math.random() * (maxAdditions + 1));
     for (let i = 0; i < specialCount; i++) {
       const placement = Math.floor(Math.random() * 3);
@@ -146,7 +146,7 @@ const modifyWord = (
     }
   }
 
-  if (type === "numbers" || type === "both") {
+  if (typeArr.includes("numbers")) {
     const numberCount = Math.floor(Math.random() * (maxAdditions + 1));
     for (let i = 0; i < numberCount; i++) {
       const placement = Math.floor(Math.random() * 3);

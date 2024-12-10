@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velocityper API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="scripts/main.js" defer></script>
+  </head>
+  <body>
+    <div class="w-full h-full flex flex-col justify-center items-center">
+      <h1 class="text-xl mt-10 font-bold">Hello Velocityper</h1>
+
+      <div class="m-10">
+        <div class="mb-6 flex flex-col gap-2 max-w-md">
+          <input
+            type="text"
+            id="msg-input"
+            class="p-2 rounded-md border border-neutral-400"
+          />
+          <button
+            id="send-btn"
+            class="px-4 py-2 rounded-md bg-black text-white active:scale-95"
+          >
+            Send Message
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <h3 class="text-lg font-medium">Message</h3>
+          <pre
+            id="msg-output"
+            class="max-w-lg min-h-20 text-wrap h-20 min-w-80 whitespace-pre-wrap bg-neutral-200 border border-neutral-400 rounded-md"
+          ></pre>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
