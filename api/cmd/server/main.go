@@ -62,10 +62,8 @@ func main() {
 
 	// socket connection
 	//wsHandler := handler.WebSocketHandler{Hub: hub}
-	//mux.Handle("GET /chat", wsHandler)
-	//mux.HandleFunc("GET /socket")
-
-	mux.Handle("GET /chat", handler.WebSocketHandler{})
+	//mux.Handle("GET /ws", wsHandler)
+	mux.Handle("GET /ws", handler.WebSocketHandler{})
 
 	mux.HandleFunc("GET /test", handler.GetTest)
 

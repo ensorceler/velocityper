@@ -36,7 +36,7 @@ func GetSignedToken(payload JWTPayload) (string, error) {
 	//CustomC
 	//fmt.Println("c: ", c)
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return t.SignedString([]byte(key))
+	return t.SignedString([]byte(key.(string)))
 }
 
 func VerifyAndParseSignedToken(tokenString string) (*ClaimsPayload, error) {
@@ -44,7 +44,7 @@ func VerifyAndParseSignedToken(tokenString string) (*ClaimsPayload, error) {
 	key := config.GetEnv("JWT_SECRET")
 	fmt.Println("key", key)
 	token, err := jwt.ParseWithClaims(tokenString, &ClaimsPayload{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte(key), nil
+		return []byte(key.(string)), nil
 	})
 	if err != nil {
 		fmt.Println("token invalid", err)

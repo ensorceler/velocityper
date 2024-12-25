@@ -9,8 +9,9 @@ import React, {
   useRef,
   useState,
 } from "react";
+
 import { cn } from "@/lib/cn";
-import { LoaderCircleIcon, RotateCcw, TimerReset } from "lucide-react";
+import { LoaderCircleIcon, RotateCcw } from "lucide-react";
 import formatSeconds from "@/utils/formatSeconds";
 import useTypeTestTimer from "@/hooks/useTypeTestTimer";
 import { useTypeTestWords } from "@/hooks/useTypeTestWords";

@@ -34,3 +34,21 @@ body {
 .nav-icon {
   @apply dark:text-stone-400   dark:hover:text-stone-50 cursor-pointer active:scale-95;
 }
+
+/* Sleek, minimal scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(85, 85, 85, 0.8);
+}

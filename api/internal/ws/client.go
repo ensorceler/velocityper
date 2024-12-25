@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	redis_cli "velocityper/api/internal/lib/redis"
-	"velocityper/api/internal/utils"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,6 +12,8 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	//Subprotocols: []string{},
+	Subprotocols: []string{"binary"},
 }
 
 type Client struct {
@@ -22,24 +23,59 @@ type Client struct {
 	roomId string
 }
 
+type ReadMessageType struct {
+	EventType string `json:"event_type"`
+	Message   string `json:"message"`
+}
+
 func (c *Client) readMessage() {
 
+	defer func() {
+		//RecordNumConnections("delete", c.redis, c.roomId)
+		c.conn.Close()
+	}()
+
 	for {
+		v := ReadMessageType{}
+		//err := c.conn.ReadJSON(&v)
 		_, message, err := c.conn.ReadMessage()
 
 		if err != nil {
-			fmt.Println("read err =>", err)
-			return
+			fmt.Println("readMessage function error=>", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("error: %v", err)
+			}
+			break
 		}
 
-		fmt.Println("message read =>", message)
-		c.redis.PublishMessage(c.roomId, string(message))
+		fmt.Println("logging the message", message)
+		switch v.EventType {
+
+		case "broadcast_message":
+			fmt.Println("message read =>", v.Message)
+			c.redis.PublishMessage(c.roomId, string(v.Message))
+
+		case "chat":
+			//fmt.Println("message send", v.Message)
+			c.redis.PublishMessage(c.roomId, string(v.Message))
+
+		default:
+			//fmt.Println("message send", v.Message)
+			//c.redis.PublishMessage(c.roomId, string(v.Message))
+			//c.conn.Close()
+			fmt.Println("default case for message")
+		}
 		//c.send <- x
 	}
 
 }
 
 func (c *Client) writeMessage() {
+
+	defer func() {
+		//		RecordNumConnections("delete", c.redis, c.roomId)
+		c.conn.Close()
+	}()
 
 	pubsub := c.redis.PubSub(c.roomId)
 	defer pubsub.Close()
@@ -57,17 +93,7 @@ func (c *Client) writeMessage() {
 	}
 }
 
-func ClientRun(w http.ResponseWriter, r *http.Request) {
-
-	q := r.URL.Query()
-	roomId := q.Get("room")
-	fmt.Println("roomId: ", roomId)
-
-	if roomId == "" {
-		//w.Write([]byte("bad request"))
-		utils.HttpResponse(w, 403, "Bad Request", nil)
-		return
-	}
+func ClientRun(w http.ResponseWriter, r *http.Request, roomId string) {
 
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -79,11 +105,15 @@ func ClientRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a client for each connection
+	redisClient := redis_cli.GetRedisClient()
+
 	c := Client{
+		//roomId  room: 1234
 		conn:   conn,
 		roomId: roomId,
-		redis:  redis_cli.GetRedisClient(),
+		redis:  redisClient,
 	}
+
 	//c.redis.GetKeyVal()
 	go c.readMessage()
 	go c.writeMessage()

@@ -17,9 +17,20 @@ type REDISClient struct {
 var redisClient REDISClient
 
 func CreateNewClient() {
+	//fmt.Println()
+
+	redisHost := "127.0.0.1"
+	redisPort := "6379"
+
+	//fmt.Println("config docker container", config.GetEnv("DOCKER_CONTAINER"))
+
+	if config.GetEnv("DOCKER_CONTAINER") != nil {
+		redisHost = config.GetEnv("REDIS_HOST").(string)
+		redisPort = config.GetEnv("REDIS_PORT").(string)
+	}
 
 	redisClient.Client = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%s", config.GetEnv("REDIS_HOST"), config.GetEnv("REDIS_PORT")),
+		Addr: fmt.Sprintf("%s:%s", redisHost, redisPort),
 		//config.GetEnv("REDIS"),
 	})
 
@@ -42,8 +53,8 @@ func (r REDISClient) SetKeyVal(key string, val any) {
 
 func (r REDISClient) GetKeyVal(key string) string {
 	val, err := r.Client.Get(ctx, key).Result()
-	if err != nil {
-		panic(err)
+	if err == redis.Nil {
+		return ""
 	}
 	return val
 }

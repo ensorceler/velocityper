@@ -22,10 +22,7 @@ func LoadConfigENV() {
 
 }
 
-func GetEnv(key string) string {
+func GetEnv(key string) any {
 	val := viper.Get(key)
-	if val == nil {
-		log.Panic("NO ENV FOUND: Key", key)
-	}
-	return val.(string)
+	return val
 }

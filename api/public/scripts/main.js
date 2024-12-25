@@ -1,4 +1,4 @@
-ws = new WebSocket("ws://127.0.0.1:6543/chat?room=23", ["ws", "wss"]);
+ws = new WebSocket("ws://127.0.0.1:6543/ws?room=23", ["ws", "wss"]);
 
 const btn = document.querySelector("#send-btn");
 const input = document.querySelector("#msg-input");
