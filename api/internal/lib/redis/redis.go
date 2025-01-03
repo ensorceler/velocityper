@@ -3,6 +3,7 @@ package redis_cli
 import (
 	"context"
 	"fmt"
+	"log"
 	"velocityper/api/internal/config"
 
 	"github.com/redis/go-redis/v9"
@@ -40,33 +41,79 @@ func GetRedisClient() *REDISClient {
 	return &redisClient
 }
 
-func (r REDISClient) CheckPing() *redis.StatusCmd {
-	return r.Client.Conn().Ping(ctx)
+func (rc REDISClient) CheckPing() *redis.StatusCmd {
+	return rc.Client.Conn().Ping(ctx)
 }
 
-func (r REDISClient) SetKeyVal(key string, val any) {
-	err := r.Client.Set(ctx, key, val, 0).Err()
+func (rc REDISClient) SetKeyVal(key string, val any) {
+	err := rc.Client.Set(ctx, key, val, 0).Err()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (r REDISClient) GetKeyVal(key string) string {
-	val, err := r.Client.Get(ctx, key).Result()
+func (rc REDISClient) DeleteKey(key string) {
+	err := rc.Client.Del(ctx, key).Err()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (rc REDISClient) GetKeyVal(key string) string {
+	val, err := rc.Client.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return ""
 	}
 	return val
 }
 
-func (r REDISClient) PublishMessage(key string, val string) {
-	err := r.Client.Publish(ctx, key, val).Err()
+func (rc REDISClient) GetBatchKeyVal(keys ...string) []interface{} {
+	val, err := rc.Client.MGet(ctx, keys...).Result()
+	if err == redis.Nil {
+		return []interface{}{}
+	}
+	return val
+}
+func (rc REDISClient) PublishMessage(key string, val string) {
+	err := rc.Client.Publish(ctx, key, val).Err()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (r REDISClient) PubSub(subscriptionChannel string) *redis.PubSub {
+func (rc REDISClient) PubSub(subscriptionChannel string) *redis.PubSub {
 	// There is no error because go-redis automatically reconnects on error.
-	return r.Client.Subscribe(ctx, subscriptionChannel)
+	return rc.Client.Subscribe(ctx, subscriptionChannel)
+}
+
+func (rc REDISClient) HSET(key string, val ...interface{}) {
+	err := rc.Client.HSet(ctx, key, val).Err()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (rc REDISClient) SADD(key string, val ...interface{}) {
+	err := rc.Client.SAdd(ctx, key, val).Err()
+	if err != nil {
+		log.Println("sadd error: ", err)
+		panic(err)
+	}
+}
+
+func (rc REDISClient) SMembers(key string) []string {
+	members, err := rc.Client.SMembers(ctx, key).Result()
+	if err != nil {
+		log.Println("sadd error: ", err)
+		panic(err)
+	}
+	return members
+}
+
+func (rc REDISClient) SREM(key string, val ...interface{}) {
+	err := rc.Client.SRem(ctx, key, val).Err()
+	if err != nil {
+		log.Println("srem error: ", err)
+		panic(err)
+	}
 }

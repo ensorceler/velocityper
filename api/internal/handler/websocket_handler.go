@@ -15,6 +15,7 @@ func (wsHandler WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	q := r.URL.Query()
 	roomId := q.Get("room")
+	clientName := q.Get("client")
 	//fmt.Println("roomId: ", roomId)
 
 	if roomId == "" {
@@ -22,5 +23,5 @@ func (wsHandler WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		utils.HttpResponse(w, 403, "Bad Request", nil)
 		return
 	}
-	ws.ClientRun(w, r, roomId)
+	ws.ClientRun(w, r, roomId, clientName)
 }

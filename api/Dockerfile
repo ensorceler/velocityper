@@ -1,10 +1,13 @@
-FROM golang:1.23-alpine
+FROM golang:latest
 
-ENV DOCKER_CONTAINER true
+ENV DOCKER_CONTAINER=true
+ENV GOPROXY=direct
 
 WORKDIR /app/velocityper
 
 COPY . .
+
+RUN apt update && apt install -y git
 
 RUN go mod download
 
