@@ -10,7 +10,7 @@ interface Props {
 }
 
 const RaceTrack = ({roomID, clientName}: Props) => {
-    const {isConnected, sendMessage: sendWSMessage, incomingMessage, initiateWebSocketConnection} = useWebSocket();
+    const {isConnected, sendMessage: sendWSMessage, initiateWebSocketConnection} = useWebSocket();
 
     useEffect(() => {
         const fn = async () => {
