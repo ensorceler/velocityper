@@ -7,6 +7,8 @@ services:
       - redis
     ports:
       - "6543:6543"
+    networks:
+      - default-bridge
 
   web:
     build: ./web
@@ -14,6 +16,8 @@ services:
       - api
     ports:
       - "3000:3000"
+    networks:
+       - default-bridge
 
   # Db exists in AWS RDS cluster
   #  db:
@@ -36,7 +40,11 @@ services:
     env_file: "compose.env"
     ports:
       - "6379:6379"
+    networks:
+      - default-bridge
 
+networks:
+  default-bridge:
 #volumes:
   #postgres-data:
 

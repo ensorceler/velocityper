@@ -9,6 +9,9 @@ import (
 
 func LoadConfigENV() {
 	var err error
+	// Tell Viper to read environment variables
+	viper.AutomaticEnv()
+
 	currDir, err := os.Getwd()
 	if err != nil {
 		log.Panic("Unable to load curr dir", err)

@@ -24,6 +24,7 @@ func CreateNewClient() {
 	redisPort := "6379"
 
 	//fmt.Println("config docker container", config.GetEnv("DOCKER_CONTAINER"))
+	fmt.Println("ENV: Docker Container =>", config.GetEnv("DOCKER_CONTAINER"))
 
 	if config.GetEnv("DOCKER_CONTAINER") != nil {
 		redisHost = config.GetEnv("REDIS_HOST").(string)
