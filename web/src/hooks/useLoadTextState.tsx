@@ -8,7 +8,7 @@ import { toast } from "sonner";
 // this manages the textstate solely when configuration or other stuff changes
 export default function useLoadTextState(testConfig: TestConfig) {
   const [textState, setTextState] = useState<TextState[]>([]);
-  const [quoteType, setQuoteType] = useState<string>("");
+  //const [quoteType, setQuoteType] = useState<string>("");
 
   const {
     data: wordsData,
@@ -28,13 +28,13 @@ export default function useLoadTextState(testConfig: TestConfig) {
     isError: isQuoteError,
     error: qoutesError,
   } = useQuery({
-    queryKey: ["quotes", quoteType],
+    queryKey: ["quotes"],
     queryFn: fetchQuotes,
   });
 
   useEffect(() => {
     if (isQuoteSuccess && testConfig.testType === "quotes") {
-      setTextState(prepareQuoteState(quoteData?.data, testConfig.quoteLength));
+      setTextState(prepareQuoteState(quoteData?.data, testConfig.quoteLength,testConfig?.quoteID));
     }
     if (
       isWordsSuccess &&

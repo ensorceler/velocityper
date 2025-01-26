@@ -1,12 +1,15 @@
-import RaceWithFriends from "@/components/modules/type-race/RaceWithFriends";
-import {Suspense} from "react";
+'use server';
 
-export default function RaceWithFriendsPage() {
+import dynamic from "next/dynamic";
+
+
+// use dynamic import
+const RaceWithFriends = dynamic(() => import("@/components/modules/type-race/RaceWithFriends"), {ssr: false});
+
+export default async function RaceWithFriendsPage() {
     return (
         <main>
-            <Suspense >
-                <RaceWithFriends/>
-            </Suspense>
+            <RaceWithFriends/>
         </main>
     );
 }

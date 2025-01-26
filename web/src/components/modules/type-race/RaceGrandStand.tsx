@@ -2,47 +2,42 @@
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
 
 import * as React from "react";
-import {useEffect, useState} from "react";
 import {Send} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/cn";
 import {Input} from "@/components/ui/input";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {useSocketState} from "@/global-state/socketState";
+import {useTypeRaceState} from "@/global-state/typeRaceState";
 
 interface Props {
     // sendWSMessage: (x: string) => void;
 }
 
+interface JoinedUser {
+    id: string;
+    is_creator: boolean;
+    joined_race: boolean;
+    user_name: string;
+    is_you: boolean;
+}
+
+interface ClientInfo {
+    is_creator: boolean;
+    user_id: string;
+    user_name: string;
+}
+
+
 const RaceGrandStand = ({}: Props) => {
 
-    const [joinedUsers, setJoinedUsers] = useState([]);
-    //const {sendMessage, incomingMessage, isConnected: isSocketConnected} = useWebSocket();
-    // const [joinedUsers,setJoinedUsers]=useState("");
-    // const [user,setUsers]=useState([]);
+    const {roomJoinedUsers} = useTypeRaceState();
 
-    const {receivedEventMessageData, connectionStatus} = useSocketState();
+    //const {receivedEventMessageData, connectionStatus} = useSocketState();
+    //const [clientInfoState, setClientInfoState] = useState<ClientInfo | null>(null);
+    //const
+    //const clientInfoRef = useRef<boolean | null>(null);
 
-
-    useEffect(() => {
-        console.log('incoming message changed ', receivedEventMessageData);
-        //const parsedIncomingMessage=JSON.parse(incomingMessage);
-        if (connectionStatus === WebSocket.OPEN && (receivedEventMessageData !== null || true)) {
-            try {
-                const parsedIncomingMessage = JSON.parse(receivedEventMessageData!);
-                //console.log('users =>',parsedIncomingMessage?.message);
-                console.log('parsed incoming message', parsedIncomingMessage)
-                if (parsedIncomingMessage?.socket_event === "joined.clients") {
-                    const tempUsers = JSON.parse(parsedIncomingMessage?.message);
-                    //console.log('joined users =>',joinedUsers)
-                    setJoinedUsers(tempUsers)
-                }
-            } catch (err) {
-                console.error("failed to parse message data");
-            }
-        }
-
-    }, [receivedEventMessageData, connectionStatus])
 
     return (
         <Card className="dark:bg-transparent ">
@@ -53,23 +48,22 @@ const RaceGrandStand = ({}: Props) => {
             </CardHeader>
             <CardContent className="flex flex-row items-start gap-6 h-max py-4">
                 <CardsChat/>
-                <JoinedParticipants users={joinedUsers}/>
+                <JoinedParticipants users={roomJoinedUsers}/>
             </CardContent>
         </Card>
     );
 };
 
 interface JoinedParticipantsProps {
-    users: Array<{ id: string, name: string }>
+    users: JoinedUser[];
 }
 
 function JoinedParticipants({users}: JoinedParticipantsProps) {
-    // massive refactoring of code is taking place right now
-
+    //const  {user}
     return (
         <Card className="flex-1 dark:bg-neutral-900 overflow-y-scroll h-max">
             <CardHeader>
-                <CardTitle>Joined Participants</CardTitle>
+                <CardTitle>Joined Watchers</CardTitle>
                 <CardDescription>
                     Anyone with the invite link can join the race.
                 </CardDescription>
@@ -78,23 +72,35 @@ function JoinedParticipants({users}: JoinedParticipantsProps) {
                 <div className="space-y-4">
                     <p className="text-sm font-medium">People who already joined</p>
                     <div className="flex flex-col gap-3">
-                        {users.map((user: any, index) => (
+                        {users.map((user, index) => (
                             <div
                                 key={index}
                                 className="flex items-center justify-between space-x-4"
                             >
                                 <div className="flex items-center space-x-4">
                                     <Avatar>
-                                        <AvatarImage src="/avatars/03.png"/>
                                         <AvatarFallback>US</AvatarFallback>
                                     </Avatar>
-                                    <div>
-                                        <p className="text-sm font-medium leading-none">
-                                            {user?.user_name}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {user?.is_creator && "CREATOR"}
-                                        </p>
+                                    <div className="flex flex-row gap-3">
+                                        <div>
+                                            <p className="text-sm font-medium leading-none flex flex-row">
+                                                <span>{user?.user_name}</span>
+                                                {user?.is_you &&
+                                                    <span className="text-xs">
+                                                (You)
+                                                </span>
+                                                }
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {user?.is_creator && "CREATOR"}
+                                            </p>
+                                        </div>
+                                        {
+                                            user?.joined_race &&
+                                            <p className="text-xs bg-neutral-700 rounded-md p-2">
+                                                JOINED RACE
+                                            </p>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -108,18 +114,9 @@ function JoinedParticipants({users}: JoinedParticipantsProps) {
 
 
 export function CardsChat() {
-    const [open, setOpen] = React.useState(false);
-    //const {sendMessage: sendWSMessage, incomingMessage} = useWebSocket()
-    const {receivedEventMessageData, sendSocketMessage, connectionStatus} = useSocketState()
-    //const [selectedUsers, setSelectedUsers] = React.useState<User[]>([]);
-    const [messages, setMessages] = React.useState([
-        {
-            role: "automated-bot",
-            content: "Welcome to the Group Chat!",
-        },
-    ]);
+    const {sendSocketMessage, connectionStatus} = useSocketState()
+    const {chatRoomMessages, userInfo} = useTypeRaceState()
     const [input, setInput] = React.useState("");
-    const inputLength = input.trim().length;
 
     const sendChatMessage = (event: any) => {
         event.preventDefault();
@@ -128,25 +125,6 @@ export function CardsChat() {
         setInput("");
     }
 
-    useEffect(() => {
-        //if(send)
-        if (connectionStatus === WebSocket.OPEN && receivedEventMessageData) {
-            try {
-                // parse the event data
-                const parsedEventData = JSON.parse(receivedEventMessageData);
-                if (parsedEventData?.socket_event === "chat.room") {
-                    // parse the message
-                    const messageContent=JSON.parse(parsedEventData?.message);
-                    setMessages(messages => ([...messages, {
-                        role: messageContent?.user_name,
-                        content: messageContent?.message
-                    }]))
-                }
-            } catch (err) {
-                console.error("failed to parse", err);
-            }
-        }
-    }, [receivedEventMessageData]);
 
     return (
         <Card className="flex-1 max-w-xl dark:bg-neutral-900 ">
@@ -155,7 +133,7 @@ export function CardsChat() {
             </CardHeader>
             <CardContent className="max-h-96 overflow-y-scroll">
                 <div className="space-y-4 ">
-                    {messages.map((message, index) => (
+                    {chatRoomMessages.map((message, index) => (
                         <div
                             key={index}
                             className={cn(

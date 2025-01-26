@@ -1,28 +1,30 @@
 import useTestConfiguration from "@/hooks/useTestConfiguration";
 import TypingTestBox from "../type-test/TypingTestBox";
 import {useEffect, useState} from "react";
-import QueryProvider from "@/components/query-provider";
 import RaceParticipants from "./RaceParticipants";
 import {Button} from "@/components/ui/button";
 import {UserPen, UserPlus} from "lucide-react";
-import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
 import {toast} from "sonner";
+import {useSocketState} from "@/global-state/socketState";
+import {useTypeRaceState} from "@/global-state/typeRaceState";
 
 interface Props {
     roomID: string;
+    //roomID:string;
 }
 
-// race course gives you participants and allows you to start/join the race
 const RaceCourse = ({roomID}: Props) => {
 
     const [showTypingTest, setShowTypingTest] = useState(false);
-    const [config, setConfig] = useTestConfiguration();
+    const [typeRaceTestConfig, setTypeRaceTestConfig] = useTestConfiguration(false);
     const [inviteLink, setInviteLink] = useState(
-        "http://localhost:3000/race-with-friends?invite="+roomID
+        "http://localhost:3000/race-with-friends?invite=" + roomID
     );
-
-    // result -> interesting stuff
+    const [userJoinedAlready, setUserJoinedAlready] = useState(false);
+    const [raceStarted, setRaceStarted] = useState(false);
+    const {connectionStatus, sendSocketMessage} = useSocketState();
 
     const [result, setResult] = useState<TestResult>({
         chartResult: [],
@@ -32,8 +34,8 @@ const RaceCourse = ({roomID}: Props) => {
         incorrectChars: 0,
         accuracy: 0,
     });
-
     const [testStatus, setTestStatus] = useState<TestStatus>("upcoming");
+    const {userInfo, raceConfig, roomInfo, roomJoinedUsers} = useTypeRaceState()
 
     const copyInviteLink = async () => {
         try {
@@ -45,17 +47,91 @@ const RaceCourse = ({roomID}: Props) => {
     };
 
 
-    useEffect(() => {
-        setInviteLink("http://localhost:3000/race-with-friends?invite=" + roomID)
-    }, [roomID])
+    const startRace = () => {
+        //startRace();
+        // only a creator can start the race actually
+        // atleast two joined users need to be present to start the race actually
+        if (userInfo?.is_creator && roomJoinedUsers.filter(user => user.joined_race).length >= 2) {
+            //sendSocketMessage()
+            sendSocketMessage(JSON.stringify({
+                event_type: "start.type-race"
+            }))
+        } else if (roomJoinedUsers.filter(user => user.joined_race).length <= 1) {
+            console.error("start type-race need enough participants")
+            toast.error("Typing Race Needs at least 2 participants");
+        }
+    }
 
+    const joinRace = () => {
+        if (connectionStatus === WebSocket.OPEN) {
+            sendSocketMessage(JSON.stringify({
+                event_type: "join.type-race"
+            }))
+            setUserJoinedAlready(true);
+        }
+    }
+
+    const leaveRace = () => {
+        window.location.reload();
+    }
+
+    const updateRoomTestConfigAsCreator = (config: any) => {
+        if (connectionStatus === WebSocket.OPEN) {
+            sendSocketMessage(JSON.stringify({
+                event_type: "update.raceconfig.room",
+                message: JSON.stringify({
+                    ...config
+                })
+            }))
+        }
+    }
+
+    useEffect(() => {
+        console.log("user info loaded =>", userInfo);
+        if (userInfo?.is_creator) {
+            //const randomQouteID=
+            //const randomQuoteID = Math.round(Math.random() * 50 + 1);
+
+            const randomQuoteID = 10;
+            const randomTestConfig: TestConfig = {
+                ...typeRaceTestConfig,
+                testType: 'quotes', quoteLength: 'medium', quoteID: randomQuoteID,
+                strictTyping: true,
+                isTypingRace: true,
+            }
+            setTypeRaceTestConfig({...randomTestConfig});
+            setShowTypingTest(true);
+            updateRoomTestConfigAsCreator(randomTestConfig);
+        }
+        // when user is not creator
+    }, [userInfo]);
+
+    useEffect(() => {
+        // all the race-joinee will be updated
+        if (raceConfig && !userInfo?.is_creator && userJoinedAlready) {
+            //console.log("race config coming from server =>", raceConfig);
+            setTypeRaceTestConfig({...raceConfig})
+            setShowTypingTest(true);
+        }
+    }, [raceConfig]);
+
+    //useRef()
+    useEffect(() => {
+        if (roomInfo) {
+            console.log("roominfo coming from server =>", roomInfo)
+            if (roomInfo?.race_started) {
+                //toast.success("Type-race has started!!!")
+                toast.success("Type-Race has started!!!")
+                //set
+                setRaceStarted(true);
+            }
+        }
+    }, [roomInfo]);
 
     return (
-        <QueryProvider>
+        <>
             <Dialog>
-
                 <div className="w-full flex justify-end gap-4">
-
                     <DialogTrigger asChild>
                         <Button variant="secondary" className="flex gap-2 items-center">
                             <UserPlus/>
@@ -64,7 +140,12 @@ const RaceCourse = ({roomID}: Props) => {
                     </DialogTrigger>
 
                     <DialogContent className="dark:bg-[#111] max-w-2xl">
-                        You can invite the any user to the race If you send them the link.
+                        <DialogTitle>
+                            Invite Friends
+                        </DialogTitle>
+                        <DialogDescription>
+                            You can invite the any user to the race If you send them the link.
+                        </DialogDescription>
                         <div className="flex space-x-2">
                             <Input value={inviteLink} readOnly/>
                             <Button
@@ -76,11 +157,13 @@ const RaceCourse = ({roomID}: Props) => {
                             </Button>
                         </div>
                     </DialogContent>
-
-                    <Button className="flex gap-2 items-center" variant="ghost">
-                        <UserPen/>
-                        <p>Edit Racetrack</p>
-                    </Button>
+                    {
+                        userInfo?.is_creator &&
+                        <Button className="flex gap-2 items-center" variant="ghost">
+                            <UserPen/>
+                            <p>Edit Racetrack</p>
+                        </Button>
+                    }
                 </div>
             </Dialog>
 
@@ -88,20 +171,33 @@ const RaceCourse = ({roomID}: Props) => {
                 <RaceParticipants/>
                 {showTypingTest && (
                     <TypingTestBox
-                        config={config}
+                        config={typeRaceTestConfig}
                         testStatus={testStatus}
                         setTestStatus={setTestStatus}
-                        setConfig={setConfig}
+                        setConfig={setTypeRaceTestConfig}
                         setResult={setResult}
+                        showReloadBtn={false}
+                        typingAllowed={raceStarted ? true : false}
                     />
                 )}
                 <div className="flex flex-row gap-2">
-                    <Button variant="destructive">Start Race</Button>
-                    <Button variant="primary">Join Race</Button>
-                    <Button variant="secondary">Leave Race</Button>
+                    {
+                        // as creator only can start the race
+                        userInfo?.is_creator &&
+                        <Button variant="destructive" onClick={startRace} disabled={raceStarted}>Start Race</Button>
+                    }
+                    { // not creator but a spectator or race-joinee
+                        !userInfo?.is_creator
+                        &&
+                        <Button variant="primary" onClick={joinRace}
+                                disabled={userJoinedAlready || userInfo?.is_creator}>
+                            Join Race
+                        </Button>
+                    }
+                    <Button variant="secondary" onClick={leaveRace}>Leave Race</Button>
                 </div>
             </div>
-        </QueryProvider>
+        </>
     );
 };
 
