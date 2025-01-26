@@ -18,8 +18,8 @@ func HttpResponse(w http.ResponseWriter, status int, message string, data any) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	//http.Status
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Hello", "World")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	w.Write(resp)
 }

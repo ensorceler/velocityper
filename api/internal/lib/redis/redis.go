@@ -2,6 +2,7 @@ package redis_cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"velocityper/api/internal/config"
@@ -22,6 +23,7 @@ func CreateNewClient() {
 
 	redisHost := "127.0.0.1"
 	redisPort := "6379"
+	redisPassword := config.GetEnv("REDIS_PASSWORD").(string)
 
 	//fmt.Println("config docker container", config.GetEnv("DOCKER_CONTAINER"))
 	fmt.Println("ENV: Docker Container =>", config.GetEnv("DOCKER_CONTAINER"))
@@ -29,10 +31,12 @@ func CreateNewClient() {
 	if config.GetEnv("DOCKER_CONTAINER") != nil {
 		redisHost = config.GetEnv("REDIS_HOST").(string)
 		redisPort = config.GetEnv("REDIS_PORT").(string)
+		//redisPassword = config.GetEnv("REDIS_PASSWORD").(string)
 	}
 
 	redisClient.Client = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%s", redisHost, redisPort),
+		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
+		Password: redisPassword,
 		//config.GetEnv("REDIS"),
 	})
 
@@ -75,7 +79,7 @@ func (rc REDISClient) GetBatchKeyVal(keys ...string) []interface{} {
 	}
 	return val
 }
-func (rc REDISClient) PublishMessage(key string, val string) {
+func (rc REDISClient) PublishMessage(key string, val any) {
 	err := rc.Client.Publish(ctx, key, val).Err()
 	if err != nil {
 		panic(err)
@@ -102,6 +106,15 @@ func (rc REDISClient) SADD(key string, val ...interface{}) {
 	}
 }
 
+func (rc REDISClient) SIsMember(key string, member interface{}) bool {
+	isMember, err := rc.Client.SIsMember(ctx, key, member).Result()
+	if err != nil {
+		log.Println("sadd error: ", err)
+		panic(err)
+	}
+	return isMember
+}
+
 func (rc REDISClient) SMembers(key string) []string {
 	members, err := rc.Client.SMembers(ctx, key).Result()
 	if err != nil {
@@ -117,4 +130,34 @@ func (rc REDISClient) SREM(key string, val ...interface{}) {
 		log.Println("srem error: ", err)
 		panic(err)
 	}
+}
+
+func (rc REDISClient) ZADD(key string, score float64, member string) {
+	_, err := rc.Client.ZAdd(ctx, key, redis.Z{Score: score, Member: member}).Result()
+	if err != nil {
+		log.Println("zadd error: ", err)
+		panic(err)
+	}
+}
+
+func (rc REDISClient) ZRank(key string, member string) int64 {
+	//err := rc.Client.ZAdd(ctx, key, redis.Z{score, member})
+	rank, err := rc.Client.ZRank(ctx, key, member).Result()
+	if err != nil {
+		log.Println("zrank error: ", err)
+		if errors.Is(err, redis.Nil) {
+			return -1
+		} else {
+			panic(err)
+		}
+	}
+	return rank
+}
+
+func (rc REDISClient) FlushAll() {
+	flush, err := rc.Client.FlushAll(ctx).Result()
+	if err != nil {
+		log.Println("flushall error: ", err)
+	}
+	fmt.Println("REDIS FLUSH: ", flush)
 }

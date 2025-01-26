@@ -44,7 +44,7 @@ func GetQuotes(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Println("SQL =>", query)
 	finalQuery := fmt.Sprintf("%s UNION ALL %s UNION ALL %s", query1, query2, query3)
-	fmt.Println("final query =>", finalQuery)
+	//fmt.Println("final query =>", finalQuery)
 
 	rows, err := db.GetDBConn().Query(finalQuery)
 	if err != nil {

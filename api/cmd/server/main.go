@@ -34,6 +34,8 @@ func main() {
 	}
 	fmt.Printf("redis ping: %+v\n", redisPing)
 
+	redis_cli.GetRedisClient().FlushAll()
+
 	//file server at /public directory
 	fs := http.FileServer(http.Dir("./public"))
 
@@ -64,6 +66,7 @@ func main() {
 	//wsHandler := handler.WebSocketHandler{Hub: hub}
 	//mux.Handle("GET /ws", wsHandler)
 	mux.Handle("GET /ws", handler.WebSocketHandler{})
+	mux.HandleFunc("POST /checkroom", handler.CheckRoom)
 
 	mux.HandleFunc("GET /test", handler.GetTest)
 

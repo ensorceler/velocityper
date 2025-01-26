@@ -1,5 +1,6 @@
 FROM golang:latest
 
+ENV TZ="Asia/Kolkata"
 ENV DOCKER_CONTAINER=true
 ENV GOPROXY=direct
 
