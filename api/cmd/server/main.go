@@ -71,7 +71,7 @@ func main() {
 	mux.HandleFunc("GET /test", handler.GetTest)
 
 	// http listen and serve
-	addr := fmt.Sprintf(":%s", config.GetEnv("PORT"))
+	addr := fmt.Sprintf(":%s", config.GetEnv("API_PORT"))
 
 	//fmt.Println(addr)
 	log.Printf("VELOCITYPER API SERVER, RUNNING AT %v", addr)
