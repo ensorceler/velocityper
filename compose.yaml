@@ -13,11 +13,11 @@ services:
 
   web:
     build: ./web
+    env_file: "compose.env"
     depends_on:
       - api
     ports:
       - "3000:3000"
-    env_file: "compose.env"
     networks:
        - default-bridge
 
