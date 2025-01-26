@@ -12,8 +12,10 @@ services:
       - default-bridge
 
   web:
-    build: ./web
-    env_file: "compose.env"
+    build:
+      context: ./web
+    # have to supply a .env.production from web as nextjs detects args during buildtime not runtime, cannot provide compose.env here
+    # read more: https://github.com/vercel/next.js/discussions/14030
     depends_on:
       - api
     ports:
