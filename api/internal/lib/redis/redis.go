@@ -37,6 +37,7 @@ func CreateNewClient() {
 		redisPort = config.GetEnv("REDIS_PORT").(string)
 		redisPassword = config.GetEnv("REDIS_PASSWORD").(string)
 		// if inside docker,set redis-password
+		redisOpt.Addr = fmt.Sprintf("%s:%s", redisHost, redisPort)
 		redisOpt.Password = redisPassword
 	}
 
