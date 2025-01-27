@@ -23,22 +23,24 @@ func CreateNewClient() {
 
 	redisHost := "127.0.0.1"
 	redisPort := "6379"
-	redisPassword := config.GetEnv("REDIS_PASSWORD").(string)
+	redisPassword := ""
 
 	//fmt.Println("config docker container", config.GetEnv("DOCKER_CONTAINER"))
 	fmt.Println("ENV: Docker Container =>", config.GetEnv("DOCKER_CONTAINER"))
 
+	redisOpt := redis.Options{
+		Addr: fmt.Sprintf("%s:%s", redisHost, redisPort),
+	}
+
 	if config.GetEnv("DOCKER_CONTAINER") != nil {
 		redisHost = config.GetEnv("REDIS_HOST").(string)
 		redisPort = config.GetEnv("REDIS_PORT").(string)
-		//redisPassword = config.GetEnv("REDIS_PASSWORD").(string)
+		redisPassword = config.GetEnv("REDIS_PASSWORD").(string)
+		// if inside docker,set redis-password
+		redisOpt.Password = redisPassword
 	}
 
-	redisClient.Client = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
-		Password: redisPassword,
-		//config.GetEnv("REDIS"),
-	})
+	redisClient.Client = redis.NewClient(&redisOpt)
 
 }
 
