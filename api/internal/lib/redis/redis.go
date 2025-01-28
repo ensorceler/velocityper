@@ -19,7 +19,6 @@ type REDISClient struct {
 var redisClient REDISClient
 
 func CreateNewClient() {
-	//fmt.Println()
 
 	redisHost := "127.0.0.1"
 	redisPort := "6379"
@@ -33,6 +32,7 @@ func CreateNewClient() {
 	}
 
 	if config.GetEnv("DOCKER_CONTAINER") != nil {
+		//fmt.Println("ENV: Docker Container =>", config.GetEnv("DOCKER_CONTAINER"))
 		redisHost = config.GetEnv("REDIS_HOST").(string)
 		redisPort = config.GetEnv("REDIS_PORT").(string)
 		redisPassword = config.GetEnv("REDIS_PASSWORD").(string)
@@ -40,7 +40,7 @@ func CreateNewClient() {
 		redisOpt.Addr = fmt.Sprintf("%s:%s", redisHost, redisPort)
 		redisOpt.Password = redisPassword
 	}
-
+	fmt.Printf("REDIS:options => %+v\n", redisOpt)
 	redisClient.Client = redis.NewClient(&redisOpt)
 
 }

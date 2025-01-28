@@ -23,28 +23,13 @@ services:
     networks:
        - default-bridge
 
-  # Db exists in AWS RDS cluster
-  #  db:
-  #    image: postgres:17-alpine
-  #    env_file: "compose.env"
-  #    ports:
-  #      - "5432:5432"
-  #    volumes:
-  #      - postgres-data:/var/lib/postgresql/data
-  #    healthcheck:
-  #      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-  #      interval: 5s
-  #      timeout: 5s
-  #      retries: 5
-  #    networks:
-  #      - default-bridge
 
+  # redis configuration loaded from mounted volume: redis_volume/redis.conf
   redis:
     image: redis:alpine
-    env_file: "compose.env"
-    #command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
-    #command: redis-server --requirepass "${REDIS_PASSWORD}"
-    command: redis-server --requirepass $${REDIS_PASSWORD}
+    command: redis-server  /usr/local/etc/redis/redis.conf
+    volumes:
+        - ./redis_volume:/usr/local/etc/redis
     ports:
       - "6380:6379"
     networks:
@@ -52,6 +37,4 @@ services:
 
 networks:
   default-bridge:
-#volumes:
-  #postgres-data:
 
