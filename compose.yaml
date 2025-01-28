@@ -3,7 +3,6 @@ name: velocityper
 services:
   api:
     build: ./api
-    env_file: "compose.env"
     depends_on:
       - redis
     ports:
@@ -22,7 +21,6 @@ services:
       - "3000:3000"
     networks:
        - default-bridge
-
 
   # redis configuration loaded from mounted volume: redis_volume/redis.conf
   redis:
