@@ -1,6 +1,6 @@
 "use client";
 
-import {useSearchParams} from "next/navigation";
+import {useRouter, useSearchParams} from "next/navigation";
 import {Suspense, useEffect, useState} from "react";
 import RaceTrack from "@/components/modules/type-race/RaceTrack";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
@@ -13,8 +13,7 @@ import {useForm} from "react-hook-form";
 import {generateRoomId} from "@/utils/idGenerate";
 import {cn} from "@/lib/cn";
 import {toast} from "sonner";
-import QueryProvider from "@/components/query-provider";
-import {useMutation} from "@tanstack/react-query";
+import {QueryClient, QueryClientProvider, useMutation} from "@tanstack/react-query";
 import {CheckCircledIcon, CrossCircledIcon, UpdateIcon} from "@radix-ui/react-icons";
 import {debounce} from "lodash";
 
@@ -34,12 +33,28 @@ const creatorSchema = z.object({
     creatorName: z.string().min(1, "Creator Name is Required!"),
 });
 
+const newQueryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: true,
+            refetchOnMount: true,
+            refetchOnReconnect: true,
+            retry: 3,
+            staleTime: 0,
+        },
+    },
+});
+
 export default function RaceWithFriends() {
+    const router = useRouter();
+    useEffect(() => {
+        router.refresh()
+    }, []);
     return (
         <Suspense>
-            <QueryProvider>
+            <QueryClientProvider client={newQueryClient}>
                 <RaceWithFriendsComponent/>
-            </QueryProvider>
+            </QueryClientProvider>
         </Suspense>
     )
 }

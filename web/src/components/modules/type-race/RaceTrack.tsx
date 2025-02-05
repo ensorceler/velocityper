@@ -10,7 +10,7 @@ interface Props {
 }
 
 const RaceTrack = ({roomID, clientName}: Props) => {
-    const {isConnected, sendMessage: sendWSMessage, initiateWebSocketConnection} = useWebSocket();
+    const {initiateWebSocketConnection} = useWebSocket();
 
     useEffect(() => {
         const fn = async () => {
@@ -18,6 +18,7 @@ const RaceTrack = ({roomID, clientName}: Props) => {
         }
         fn();
     }, [])
+
     return (
         <div className="flex flex-col gap-10">
             <RaceCourse roomID={roomID}/>

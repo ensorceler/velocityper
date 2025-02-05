@@ -12,7 +12,6 @@ import {useTypeRaceState} from "@/global-state/typeRaceState";
 
 interface Props {
     roomID: string;
-    //roomID:string;
 }
 
 const RaceCourse = ({roomID}: Props) => {
@@ -20,7 +19,7 @@ const RaceCourse = ({roomID}: Props) => {
     const [showTypingTest, setShowTypingTest] = useState(false);
     const [typeRaceTestConfig, setTypeRaceTestConfig] = useTestConfiguration(false);
     const [inviteLink, setInviteLink] = useState(
-        "http://localhost:3000/race-with-friends?invite=" + roomID
+        `${process.env.NEXT_PUBLIC_URL}/race-with-friends?invite=` + roomID
     );
     const [userJoinedAlready, setUserJoinedAlready] = useState(false);
     const [raceStarted, setRaceStarted] = useState(false);
@@ -34,6 +33,7 @@ const RaceCourse = ({roomID}: Props) => {
         incorrectChars: 0,
         accuracy: 0,
     });
+
     const [testStatus, setTestStatus] = useState<TestStatus>("upcoming");
     const {userInfo, raceConfig, roomInfo, roomJoinedUsers} = useTypeRaceState()
 
@@ -48,7 +48,6 @@ const RaceCourse = ({roomID}: Props) => {
 
 
     const startRace = () => {
-        //startRace();
         // only a creator can start the race actually
         // atleast two joined users need to be present to start the race actually
         if (userInfo?.is_creator && roomJoinedUsers.filter(user => user.joined_race).length >= 2) {
@@ -59,10 +58,15 @@ const RaceCourse = ({roomID}: Props) => {
         } else if (roomJoinedUsers.filter(user => user.joined_race).length <= 1) {
             console.error("start type-race need enough participants")
             toast.error("Typing Race Needs at least 2 participants");
+        }else{
+            toast.error("Oops! Error Occurred when starting race, please refresh or try again!!");
         }
     }
 
     const joinRace = () => {
+        // join-race condition another conditions needs to be done.
+        // at most 5 participants in the race.
+
         if (connectionStatus === WebSocket.OPEN) {
             sendSocketMessage(JSON.stringify({
                 event_type: "join.type-race"
@@ -90,9 +94,10 @@ const RaceCourse = ({roomID}: Props) => {
         console.log("user info loaded =>", userInfo);
         if (userInfo?.is_creator) {
             //const randomQouteID=
-            //const randomQuoteID = Math.round(Math.random() * 50 + 1);
+            // this needs to be checked and verified, not taking the entire list
+            const randomQuoteID = Math.round(Math.random() * 50 + 1);
+            //const randomQuoteID = 10;
 
-            const randomQuoteID = 10;
             const randomTestConfig: TestConfig = {
                 ...typeRaceTestConfig,
                 testType: 'quotes', quoteLength: 'medium', quoteID: randomQuoteID,

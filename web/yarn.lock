@@ -2549,6 +2549,11 @@ micromatch@^4.0.4, micromatch@^4.0.5:
     braces "^3.0.3"
     picomatch "^2.3.1"
 
+minidenticons@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/minidenticons/-/minidenticons-4.2.1.tgz#c2c3b98779e7c3aaded308bc3f123074946acb6b"
+  integrity sha512-oWfFivA0lOx/V/bO/YIJbthB26lV8JXYvhnv9zM2hNd3fzsHTXQ6c6bWZPcvhD3nnOB+lQk/D9lF43BXixrN8g==
+
 minimatch@9.0.3:
   version "9.0.3"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.3.tgz#a6e00c3de44c3a542bfaae70abfc22420a6da825"

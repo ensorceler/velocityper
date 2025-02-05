@@ -8,14 +8,12 @@ export interface UserInfo {
 }
 
 export interface UserRaceData extends UserInfo {
-    race_data: string,
+    race_data: any,
+    race_ranking?: number | string;
 }
 
 export interface RoomInfo {
     room_id: string;
-    //is_creator: boolean;
-    //user_id: string;
-    //user_name: string;
     room_creator: string;
     race_started: boolean;
 }
@@ -25,7 +23,6 @@ export interface JoinedUser {
     is_creator: boolean;
     joined_race: boolean;
     user_name: string;
-    is_you: boolean;
 }
 
 interface MessageContent {
@@ -44,7 +41,7 @@ interface TypeRaceState {
     userInfo: UserInfo | null;
     roomInfo: RoomInfo | null;
     raceConfig: TestConfig | null;
-    raceData: UserRaceData | null;
+    raceData: UserRaceData[] | null;
     chatRoomMessages: Array<ChatRoomMessage>;
     roomJoinedUsers: Array<JoinedUser>;
     updateChatRoomMessages: (x: any) => void;

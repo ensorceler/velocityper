@@ -2,42 +2,18 @@
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
 
 import * as React from "react";
-import {Send} from "lucide-react";
+import {CrownIcon, Send} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/cn";
 import {Input} from "@/components/ui/input";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {useSocketState} from "@/global-state/socketState";
-import {useTypeRaceState} from "@/global-state/typeRaceState";
-
-interface Props {
-    // sendWSMessage: (x: string) => void;
-}
-
-interface JoinedUser {
-    id: string;
-    is_creator: boolean;
-    joined_race: boolean;
-    user_name: string;
-    is_you: boolean;
-}
-
-interface ClientInfo {
-    is_creator: boolean;
-    user_id: string;
-    user_name: string;
-}
+import {JoinedUser, UserInfo, useTypeRaceState} from "@/global-state/typeRaceState";
+import PixelAvatar from "@/components/PixelAvatar";
 
 
-const RaceGrandStand = ({}: Props) => {
+const RaceGrandStand = () => {
 
-    const {roomJoinedUsers} = useTypeRaceState();
-
-    //const {receivedEventMessageData, connectionStatus} = useSocketState();
-    //const [clientInfoState, setClientInfoState] = useState<ClientInfo | null>(null);
-    //const
-    //const clientInfoRef = useRef<boolean | null>(null);
-
+    const {roomJoinedUsers, userInfo} = useTypeRaceState();
 
     return (
         <Card className="dark:bg-transparent ">
@@ -48,7 +24,7 @@ const RaceGrandStand = ({}: Props) => {
             </CardHeader>
             <CardContent className="flex flex-row items-start gap-6 h-max py-4">
                 <CardsChat/>
-                <JoinedParticipants users={roomJoinedUsers}/>
+                <JoinedParticipants users={roomJoinedUsers} userInfo={userInfo}/>
             </CardContent>
         </Card>
     );
@@ -56,21 +32,21 @@ const RaceGrandStand = ({}: Props) => {
 
 interface JoinedParticipantsProps {
     users: JoinedUser[];
+    userInfo: UserInfo | null;
 }
 
-function JoinedParticipants({users}: JoinedParticipantsProps) {
-    //const  {user}
+function JoinedParticipants({users, userInfo}: JoinedParticipantsProps) {
+
     return (
         <Card className="flex-1 dark:bg-neutral-900 overflow-y-scroll h-max">
             <CardHeader>
-                <CardTitle>Joined Watchers</CardTitle>
+                <CardTitle>Spectators</CardTitle>
                 <CardDescription>
-                    Anyone with the invite link can join the race.
+                    Anyone with the invite link can watch and join the race.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    <p className="text-sm font-medium">People who already joined</p>
                     <div className="flex flex-col gap-3">
                         {users.map((user, index) => (
                             <div
@@ -78,29 +54,44 @@ function JoinedParticipants({users}: JoinedParticipantsProps) {
                                 className="flex items-center justify-between space-x-4"
                             >
                                 <div className="flex items-center space-x-4">
-                                    <Avatar>
-                                        <AvatarFallback>US</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex flex-row gap-3">
+                                    <PixelAvatar username={user?.user_name} saturation="90" width="48" height="48"/>
+                                    <div className="flex flex-row gap-6 justify-between">
                                         <div>
-                                            <p className="text-sm font-medium leading-none flex flex-row">
-                                                <span>{user?.user_name}</span>
-                                                {user?.is_you &&
-                                                    <span className="text-xs">
-                                                (You)
-                                                </span>
+                                            <p className="text-base font-medium leading-none flex flex-row">
+                                                {user?.user_name}
+                                                <span className="ml-2">
+                                                {user?.id === userInfo?.user_id &&
+                                                    <span className="text-sm text-neutral-400">
+                                                        ( You )
+                                                    </span>
                                                 }
+                                                </span>
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {user?.is_creator && "CREATOR"}
-                                            </p>
+                                            <>
+                                                {
+                                                    user?.is_creator &&
+                                                    <div
+                                                        className="text-muted-foreground flex flex-row gap-2 items-center">
+                                                        <CrownIcon className="h-4 w-4 text-emerald-500"/>
+                                                        <p className="text-[12px] text-emerald-500">
+                                                            CREATOR
+                                                        </p>
+                                                    </div>
+                                                }
+                                            </>
                                         </div>
-                                        {
-                                            user?.joined_race &&
-                                            <p className="text-xs bg-neutral-700 rounded-md p-2">
-                                                JOINED RACE
-                                            </p>
-                                        }
+                                        <>
+                                            {
+                                                user?.joined_race &&
+                                                <div className="flex items-center gap-1.5">
+                                                    <div
+                                                        className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                    <span className="text-emerald-500 text-sm font-medium">
+                                                    JOINED
+                                                </span>
+                                                </div>
+                                            }
+                                        </>
                                     </div>
                                 </div>
                             </div>
@@ -120,9 +111,10 @@ export function CardsChat() {
 
     const sendChatMessage = (event: any) => {
         event.preventDefault();
-        //setInput("");
-        sendSocketMessage(JSON.stringify({"event_type": "chat.room", "message": input}));
-        setInput("");
+        if(input.length){
+            sendSocketMessage(JSON.stringify({"event_type": "chat.room", "message": input}));
+            setInput("");
+        }
     }
 
 

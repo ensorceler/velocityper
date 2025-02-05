@@ -59,9 +59,9 @@ redis key client:info:<clientid> -> set the client name clientid<->client_name k
 
 set the race-config for room: room:<room-id>:race:config
 set the race-start for room:
-
 // race ranking
 room:<room-id>:race:ranking
+
 */
 
 func (c *Client) RegisterClient() {
@@ -218,14 +218,15 @@ func (c *Client) ReadPump() {
 			// check whether creatorf
 
 			isCreator := c.redis.GetKeyVal("room:creator:"+c.roomId) == c.clientID.String()
-			fmt.Printf("Debug set.config.type-race:\n")
-			fmt.Printf("Room ID: %s\n", c.roomId)
-			fmt.Printf("Current Client ID: %s\n", c.clientID.String())
-			fmt.Printf("Creator ID from Redis: %s\n", c.redis.GetKeyVal("room:creator:"+c.roomId))
-			fmt.Printf("Is Creator: %v\n", isCreator)
-
+			/*
+				log.Printf("Debug set.config.type-race:\n")
+				log.Printf("Room ID: %s\n", c.roomId)
+				log.Printf("Current Client ID: %s\n", c.clientID.String())
+				log.Printf("Creator ID from Redis: %s\n", c.redis.GetKeyVal("room:creator:"+c.roomId))
+				log.Printf("Is Creator: %v\n", isCreator)
+			*/
 			if isCreator {
-				fmt.Println("redis --> update.raceconfig.room", "room:"+c.roomId+":race:config", readMessage.Message)
+				log.Println("update.raceconfig.room =>", "room:"+c.roomId+":race:config", readMessage.Message)
 				c.redis.SetKeyVal("room:"+c.roomId+":race:config", readMessage.Message)
 				// pubsub:room:<room-id>:race:config
 				c.redis.PublishMessage("pubsub:room:"+c.roomId+":race:config", readMessage.Message)
@@ -261,13 +262,13 @@ func (c *Client) ReadPump() {
 				raceData := c.GetRaceDataOfParticipants()
 				v, err := json.Marshal(roomInfo)
 				if err != nil {
-					fmt.Println("start.type-race: error marshal")
+					log.Println("start.type-race: error marshal")
 				}
 
 				u, err := json.Marshal(raceData)
 
 				if err != nil {
-					fmt.Println("broadcast.racedata: error marshal")
+					log.Println("broadcast.racedata: error marshal")
 				}
 				// pubsub:room:<room-id>:info
 				c.redis.PublishMessage("pubsub:room:"+c.roomId+":info", string(v))
@@ -279,7 +280,7 @@ func (c *Client) ReadPump() {
 		case "broadcast.racedata":
 
 			//fmt.Println("readMessage.Message)
-			fmt.Println("broadcast.racedata =>", readMessage.Message)
+			log.Println("broadcast.racedata =>", readMessage.Message)
 			//fmt.Println()
 
 			c.redis.SetKeyVal("room:"+c.roomId+":client:"+c.clientID.String()+":racedata", readMessage.Message)
@@ -288,7 +289,7 @@ func (c *Client) ReadPump() {
 			v, err := json.Marshal(raceData)
 
 			if err != nil {
-				fmt.Println("broadcast.racedata: error marshal")
+				log.Println("broadcast.racedata: error marshal")
 			}
 
 			// pubsub:room:<room-id>:clients:racedata
@@ -299,15 +300,17 @@ func (c *Client) ReadPump() {
 			// then keep a track of these things
 			// timestamp will be the score
 			score := float64(time.Now().Unix())
-			fmt.Println("finished.race =>", score)
-			// add to sorted set along with score
+			c.redis.SetKeyVal("room:"+c.roomId+":client:"+c.clientID.String()+":racedata", readMessage.Message)
+
+			log.Println("finished.race =>", score)
+			// add to sorted set the client-id along with score
 			c.redis.ZADD("room:"+c.roomId+":race:ranking", score, c.clientID.String())
 
 			raceData := c.GetRaceDataOfParticipants()
 			v, err := json.Marshal(raceData)
 
 			if err != nil {
-				fmt.Println("broadcast.racedata: error marshal")
+				log.Println("broadcast.racedata: error marshal")
 			}
 			// pubsub:room:<room-id>:clients:racedata
 			c.redis.PublishMessage("pubsub:room:"+c.roomId+":clients:racedata", string(v))
@@ -325,9 +328,9 @@ func (c *Client) ReadPump() {
 
 			v, err := json.Marshal(message)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 			}
-			fmt.Println("chat event=>", v)
+			log.Println("chat event=>", string(v))
 			c.redis.PublishMessage("pubsub:chat:room:"+c.roomId, string(v))
 
 		default:

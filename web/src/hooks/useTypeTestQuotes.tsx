@@ -10,7 +10,6 @@ export default function useTypeTestQuotes(
     testConfig: TestConfig,
     textState: TextState[]
 ) {
-    //const [quotes, setQuotes] = useState("");
     const [currQuoteWordCount, setCurrQuoteWordCount] = useState(0);
 
     const [totalQuoteWordCount, setTotalQuoteWordCount] = useState(
@@ -112,7 +111,7 @@ export default function useTypeTestQuotes(
                 totalQuoteCharsCount,
                 time
             );
-
+            //console.log("send docket ")
             console.log('send socket data =>', updateResult);
             //console.log(' ')
             sendSocketMessage(JSON.stringify({
@@ -120,8 +119,10 @@ export default function useTypeTestQuotes(
                 "message": JSON.stringify(updateResult)
             }))
             if (updateResult.traversal_percentage === 100) {
+                console.log('### traversal percentage 100 ', updateResult)
                 sendSocketMessage(JSON.stringify({
                     "event_type": "finished.race",
+                    "message": JSON.stringify(updateResult)
                 }))
             }
         }

@@ -15,7 +15,6 @@ export default function useWebSocket() {
 
     const wsRef = useRef<WebSocket | null>(null);
     const mountedRef = useRef<boolean | null>(null);
-    //const [doConnectWebsocket]
     const [connInitiated, setConnInitiated] = useState(false);
     const {sentMessage, updateReceivedMessageData, updateConnectionStatus} = useSocketState();
 
@@ -58,24 +57,24 @@ export default function useWebSocket() {
 
         socket.onerror = (event) => {
             updateConnectionStatus(WebSocket.CLOSING);
-            console.error('WebSocket error:', event);
             setIsConnected(false);
+            console.error('WebSocket error:', event);
             toast.error(
                 "Error Occurred in Websocket Connection!!!",
                 {
-                    duration: 100000,
+                    duration: 10000,
                 }
             );
         };
 
         socket.onclose = (event) => {
             updateConnectionStatus(WebSocket.CLOSED);
-            console.error('WebSocket closed:', event);
             setIsConnected(false);
+            console.error('WebSocket closed:', event);
             toast.error(
-                "WebSocket Connection Closed!!!",
+                "Websocket Connection Closed!!!",
                 {
-                    duration: 100000,
+                    duration: 10000,
                 }
             );
 
@@ -137,80 +136,3 @@ export default function useWebSocket() {
         wsMountedRef: mountedRef
     };
 }
-/*
-import {useEffect, useState} from "react";
-
-
-export default function useWebSocket(roomID: string, clientName: string) {
-
-    //const [roomID, setRoomID] = useState("");
-    const [isConnected, setIsConnected] = useState(false);
-
-    //const [messages,setMessages]=useState([]);
-    const [incomingMessage, setIncomingMessage] = useState<any>(null);
-
-    const [ws, setWS] = useState<WebSocket | null>(null);
-
-    const sendMessage = (message: string) => {
-        if(ws?.readyState===1){
-            console.log('sending message useWebsocket hook')
-            ws?.send(message);
-        }
-    }
-
-    useEffect(() => {
-        const socket =
-            new WebSocket(
-                `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}?room=${roomID}&client=${clientName}`,
-                "binary");
-        setWS(socket);
-
-        return () => {
-            if (socket.readyState === 1) {
-                socket.close();
-            }
-        }
-    }, [roomID,clientName]);
-
-
-    useEffect(() => {
-        if (ws != null) {
-
-            ws.onopen = (event) => {
-                console.log('websocket open event =>', event);
-                    //setIncomingMessage()
-                setIsConnected(true);
-                // check all the participants
-                ws.send(JSON.stringify({
-                    event_type:"joined.clients"
-                }))
-            }
-
-            ws.onmessage = (event) => {
-                console.log('websocket message event =>', event);
-                setIncomingMessage(event.data);
-            }
-
-            ws.onerror = (event) => {
-                setIsConnected(false);
-                console.log('websocket error event =>', event);
-            }
-        }
-        return () => {
-            if (ws?.readyState === 1) {
-                setIsConnected(false);
-                ws.close();
-            }
-        }
-
-    }, [ws])
-
-
-    return {
-        ws,
-        isConnected,
-        sendMessage,
-        incomingMessage
-    }
-}
-*/

@@ -136,11 +136,6 @@ export default function TypingTestBox({
 
     const calculateTestStat = (textWord: string, typedWord: string) => {
         let matchCount = 0;
-        /*
-          abcdef
-          abc
-          abc
-        */
         const minLength = Math.min(textWord?.length, typedWord?.length);
 
         // Compare characters at the same positions
@@ -264,7 +259,7 @@ export default function TypingTestBox({
             (testStatus === "ongoing" || testStatus == "finished") &&
             !_.isEqual(config, testConfigRef.current)
         ) {
-            console.log("config changed while typing, must reset everything");
+            //console.log("config changed while typing, must reset everything");
             // has to reset first, separate logic needs to be put here
             window.location.reload();
         } else {
@@ -355,3 +350,18 @@ export default function TypingTestBox({
         </div>
     );
 }
+
+/*
+
+some debugging effects
+
+useEffect(() => {
+    console.log("typingTestBox: texState.length???",textState.length)
+    console.log("typingTestBox: isTextStateLoading???",isTextStateLoading)
+}, [isTextStateLoading]);
+
+useEffect(() => {
+    console.log("typingTestBox: textState: textState is set =>",textState)
+}, [textState]);
+*/
+

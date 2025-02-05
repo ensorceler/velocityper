@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	redis_cli "velocityper/api/internal/lib/redis"
@@ -30,6 +29,7 @@ func (wsHandler WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		utils.HttpResponse(w, 403, "Bad Request", nil)
 		return
 	}
+
 	ws.ClientRun(w, r, roomId, clientName)
 }
 
@@ -38,16 +38,14 @@ func CheckRoom(w http.ResponseWriter, r *http.Request) {
 	var err error
 	reqBody := CheckRoomRequestBody{}
 	err = json.NewDecoder(r.Body).Decode(&reqBody)
+
 	if err != nil {
 		http.Error(w, "Unable to read request body", http.StatusBadRequest)
 		return
 	}
 	rc := redis_cli.GetRedisClient()
-	fmt.Println("roomId: ", reqBody)
 	connectedUserIDs := rc.SMembers("room:" + reqBody.RoomID + ":client")
 
-	//if tls.ConnectionState{}
-	fmt.Println("connecteduserids:", connectedUserIDs)
 	if len(connectedUserIDs) >= 1 {
 		utils.HttpResponse(w, http.StatusOK, "Okay to Join!", nil)
 	} else if len(connectedUserIDs) == 0 {

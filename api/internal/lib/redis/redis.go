@@ -23,9 +23,8 @@ func CreateNewClient() {
 	redisHost := "127.0.0.1"
 	redisPort := "6379"
 	redisPassword := ""
-
 	//fmt.Println("config docker container", config.GetEnv("DOCKER_CONTAINER"))
-	fmt.Println("ENV: Docker Container =>", config.GetEnv("DOCKER_CONTAINER"))
+	//log.Println("ENV: Docker Container =>", config.GetEnv("DOCKER_CONTAINER"))
 
 	redisOpt := redis.Options{
 		Addr: fmt.Sprintf("%s:%s", redisHost, redisPort),
@@ -40,7 +39,7 @@ func CreateNewClient() {
 		redisOpt.Addr = fmt.Sprintf("%s:%s", redisHost, redisPort)
 		redisOpt.Password = redisPassword
 	}
-	fmt.Printf("REDIS:options => %+v\n", redisOpt)
+	//fmt.Printf("REDIS:options => %+v\n", redisOpt)
 	redisClient.Client = redis.NewClient(&redisOpt)
 
 }
@@ -162,5 +161,5 @@ func (rc REDISClient) FlushAll() {
 	if err != nil {
 		log.Println("flushall error: ", err)
 	}
-	fmt.Println("REDIS FLUSH: ", flush)
+	log.Println("REDIS FLUSH: ", flush)
 }

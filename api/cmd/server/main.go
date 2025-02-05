@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"velocityper/api/internal/config"
@@ -32,18 +33,18 @@ func main() {
 	if err != nil {
 		log.Panic("REDIS CONN ERROR: ", err)
 	}
-	fmt.Printf("redis ping: %+v\n", redisPing)
+
+	log.Printf("Redis  PING: %+v\n", redisPing)
 
 	redis_cli.GetRedisClient().FlushAll()
+
+	mux.Handle("GET /metrics", promhttp.Handler())
 
 	//file server at /public directory
 	fs := http.FileServer(http.Dir("./public"))
 
 	// Handle requests to serve static files
 	mux.Handle("/public/", http.StripPrefix("/public/", fs))
-
-	//hub := ws.NewHub()
-	//go hub.RunHub()
 
 	// health check
 	mux.Handle("GET /health", handler.HealthHandler{})
@@ -63,8 +64,6 @@ func main() {
 	mux.HandleFunc("GET /words", handler.GetWords)
 
 	// socket connection
-	//wsHandler := handler.WebSocketHandler{Hub: hub}
-	//mux.Handle("GET /ws", wsHandler)
 	mux.Handle("GET /ws", handler.WebSocketHandler{})
 	mux.HandleFunc("POST /checkroom", handler.CheckRoom)
 
@@ -74,12 +73,10 @@ func main() {
 	addr := fmt.Sprintf(":%s", config.GetEnv("API_PORT"))
 
 	//fmt.Println(addr)
-	log.Printf("VELOCITYPER API SERVER, RUNNING AT %v", addr)
+	log.Printf("VELOCITYPER API SERVER, RUNNING AT port %v", addr)
 
 	corsHandler := cors.Default().Handler(mux)
 	err = http.ListenAndServe(addr, corsHandler)
-
-	//err = http.ListenAndServe(addr, mux)
 
 	if err != nil {
 		log.Printf("Error has occurred when starting the server\n %v \n", err)
